@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block header_title %}
+  <a href="{% url 'dashboard' %}" style="color: var(--text-dim); text-decoration: none; margin-right: 8px;"><i class="bi bi-arrow-left"></i></a>
+  Sajili Mteja Mpya (Kanisa / Ofisi / Shule)
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 720px; margin: 0 auto;">
+  <div class="stat-card" style="padding: 32px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: white; margin-bottom: 8px;">Usajili wa Mteja & Mfumo Wake</h2>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">
+      Jaza taarifa za mteja ili mfumo uzalishe API Key ya leseni na link ya malipo ya kipekee.
+    </p>
+
+    <form method="POST">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label class="form-label">Jina la Taasisi / Mteja *</label>
+        <input type="text" name="name" class="form-control" placeholder="Mf. KKKT Usharika wa Mwenge au Safi Safi Wholesalers" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Chagua Mfumo Anao-tumia *</label>
+        <select name="app_id" class="form-control" required>
+          {% for app in apps %}
+            <option value="{{ app.id }}">{{ app.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label">Namba ya Simu (M-Pesa/Tigo/Airtel) *</label>
+          <input type="text" name="phone" class="form-control" placeholder="0712345678" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Barua Pepe (Email ya Mteja) *</label>
+          <input type="email" name="email" class="form-control" placeholder="info@kanisa.org" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Link / Tovuti ya Mfumo Wao (URL)</label>
+        <input type="url" name="system_url" class="form-control" placeholder="https://kanisa.usherika.org au https://pos.baraka.co.tz">
+        <span style="font-size: 11px; color: var(--text-dim); margin-top: 4px; display: block;">Link hii itatumwa pia kwenye email ya mteja ili aingie kwa urahisi akishalipia.</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label">Mtu wa Mawasiliano (Jina)</label>
+          <input type="text" name="contact_person" class="form-control" placeholder="Mf. Mchungaji Petro au Meneja">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ada ya Kawaida ya Mwezi (TZS) *</label>
+          <input type="number" name="monthly_rate_tzs" class="form-control" value="50000" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Siku za Kuanzia za Leseni (Initial Days)</label>
+        <select name="initial_days" class="form-control">
+          <option value="30" selected>Siku 30 (Mwezi 1 wa Kwanza)</option>
+          <option value="60">Siku 60 (Miezi 2)</option>
+          <option value="90">Siku 90 (Miezi 3)</option>
+          <option value="14">Siku 14 (Muda wa Jaribio - Trial)</option>
+          <option value="365">Siku 365 (Mwaka 1)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Maelezo ya Ziada (Admin Notes)</label>
+        <textarea name="notes" rows="3" class="form-control" placeholder="Maelezo yoyote kuhusu mkataba au huduma yao..."></textarea>
+      </div>
+
+      <div style="margin-top: 28px; display: flex; justify-content: flex-end; gap: 12px;">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Ghairi</a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i> Hifadhi & Zalisha Leseni
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

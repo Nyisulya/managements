@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header_title %}
+  <i class="bi bi-speedometer2" style="color: #3b82f6;"></i> Dashboard ya Usimamizi
+{% endblock %}
+
+{% block content %}
+<!-- Quick KPI Cards -->
+<div class="stat-grid">
+  <!-- MRR -->
+  <div class="stat-card">
+    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+      <i class="bi bi-graph-up-arrow"></i>
+    </div>
+    <div class="stat-val">TZS {{ mrr_val|intcomma }}</div>
+    <div class="stat-label">MRR (Makadirio ya Mwezi)</div>
+  </div>
+
+  <!-- Total Collected Month -->
+  <div class="stat-card">
+    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+      <i class="bi bi-wallet2"></i>
+    </div>
+    <div class="stat-val">TZS {{ month_revenue|intcomma }}</div>
+    <div class="stat-label">Zilizokusanywa Mwezi Huu</div>
+  </div>
+
+  <!-- Active Tenants -->
+  <div class="stat-card">
+    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+      <i class="bi bi-check-circle-fill"></i>
+    </div>
+    <div class="stat-val">{{ active_count }} <span style="font-size: 16px; color: var(--text-dim); font-weight: normal;">/ {{ total_tenants }}</span></div>
+    <div class="stat-label">Wateja Walio Hai (Active)</div>
+  </div>
+
+  <!-- Expiring Soon -->
+  <div class="stat-card" style="border-color: rgba(245, 158, 11, 0.4);">
+    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+      <i class="bi bi-hourglass-split"></i>
+    </div>
+    <div class="stat-val" style="color: #fbbf24;">{{ expiring_soon_count }}</div>
+    <div class="stat-label">Zinazoisha Chini ya Siku 5</div>
+  </div>
+
+  <!-- Expired / Locked -->
+  <div class="stat-card" style="border-color: rgba(239, 68, 68, 0.4);">
+    <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+      <i class="bi bi-lock-fill"></i>
+    </div>
+    <div class="stat-val" style="color: #f87171;">{{ expired_count }}</div>
+    <div class="stat-label">Muda Umeisha (Zimefungwa)</div>
+  </div>
+</div>
+
+<!-- Filter & Search Bar -->
+<div style="display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+  <!-- Filter Pills with smooth touch scroll on mobile -->
+  <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; max-width: 100%; -webkit-overflow-scrolling: touch;">
+    <a href="{% url 'dashboard' %}?status=all" class="btn btn-sm {% if filter_status == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+      Wote ({{ total_tenants }})
+    </a>
+    <a href="{% url 'dashboard' %}?status=active" class="btn btn-sm {% if filter_status == 'active' %}btn-primary{% else %}btn-secondary{% endif %}">
+      <i class="bi bi-check-circle"></i> Hai ({{ active_count }})
+    </a>
+    <a href="{% url 'dashboard' %}?status=expiring" class="btn btn-sm {% if filter_status == 'expiring' %}btn-primary{% else %}btn-secondary{% endif %}" style="border-color: rgba(245, 158, 11, 0.4);">
+      <i class="bi bi-clock-history" style="color: #fbbf24;"></i> Inaisha ({{ expiring_soon_count }})
+    </a>
+    <a href="{% url 'dashboard' %}?status=expired" class="btn btn-sm {% if filter_status == 'expired' %}btn-primary{% else %}btn-secondary{% endif %}" style="border-color: rgba(239, 68, 68, 0.4);">
+      <i class="bi bi-lock" style="color: #f87171;"></i> Zimeisha ({{ expired_count }})
+    </a>
+  </div>
+
+  <!-- Search Form -->
+  <form method="GET" style="display: flex; gap: 8px; flex: 1; min-width: 220px; max-width: 380px;">
+    <input type="text" name="q" value="{{ search_q }}" placeholder="Tafuta kanisa, simu..." class="form-control" style="padding: 8px 12px; font-size: 13px;">
+    {% if filter_status != 'all' %}<input type="hidden" name="status" value="{{ filter_status }}">{% endif %}
+    <button type="submit" class="btn btn-secondary btn-sm" title="Tafuta"><i class="bi bi-search"></i></button>
+  </form>
+</div>
+
+<!-- Tenants Table -->
+<div class="table-container" style="margin-bottom: 30px;">
+  <div style="padding: 16px 18px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+    <h3 style="font-size: 15px; font-weight: 800; color: white;">Orodha ya Wateja & Hali ya Leseni</h3>
+    <span style="font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 5px;">
+      <i class="bi bi-arrows-expand-vertical" style="display: inline-block;"></i> <span style="font-size: 11px;">Teleza kuona zaidi &rarr;</span>
+    </span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Mteja / Taasisi</th>
+        <th>Mfumo</th>
+        <th>Mawasiliano</th>
+        <th>Hali ya Leseni</th>
+        <th>Tarehe ya Kuisha</th>
+        <th>Siku Zilizobaki</th>
+        <th>Ada ya Mwezi</th>
+        <th style="text-align: right;">Vitendo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tenants %}
+        <tr>
+          <!-- Name & Details -->
+          <td>
+            <div style="font-weight: 700; color: white; display: flex; align-items: center; gap: 6px;">
+              <a href="{% url 'tenant_detail' t.id %}" style="color: white; text-decoration: none;">{{ t.name }}</a>
+              {% if t.system_url %}
+                <a href="{{ t.system_url }}" target="_blank" title="Fungua Tovuti ya Mfumo Wao" style="color: #38bdf8; font-size: 12px;">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+              {% endif %}
+            </div>
+            <div style="font-size: 12px; color: var(--text-dim);">{{ t.contact_person|default:"Mtunza Mfumo" }}</div>
+          </td>
+
+          <!-- System App -->
+          <td>
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #93c5fd; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">
+              <i class="bi {{ t.app.icon|default:'bi-laptop' }}"></i> {{ t.app.name }}
+            </span>
+          </td>
+
+          <!-- Contacts -->
+          <td>
+            <div style="font-size: 13px; color: #e2e8f0;"><i class="bi bi-telephone" style="color: var(--text-dim); margin-right: 4px;"></i> {{ t.phone }}</div>
+            <div style="font-size: 12px; color: var(--text-dim);"><i class="bi bi-envelope" style="margin-right: 4px;"></i> {{ t.email }}</div>
+          </td>
+
+          <!-- Status Badge -->
+          <td>
+            {% if t.status == 'ACTIVE' %}
+              <span class="badge badge-active"><i class="bi bi-check-circle-fill"></i> HAI</span>
+            {% elif t.status == 'EXPIRING_SOON' %}
+              <span class="badge badge-expiring"><i class="bi bi-hourglass-split"></i> INAISHA</span>
+            {% elif t.status == 'GRACE_PERIOD' %}
+              <span class="badge badge-grace"><i class="bi bi-clock-history"></i> NYONGEZA</span>
+            {% elif t.status == 'EXPIRED' %}
+              <span class="badge badge-expired"><i class="bi bi-lock-fill"></i> IMEISHA</span>
+            {% else %}
+              <span class="badge badge-suspended"><i class="bi bi-slash-circle"></i> IMEZIMWA</span>
+            {% endif %}
+          </td>
+
+          <!-- Expiry Date -->
+          <td>
+            <span style="font-weight: 600; color: #f1f5f9;">{{ t.subscription_end|date:"d/m/Y" }}</span>
+          </td>
+
+          <!-- Days remaining countdown -->
+          <td>
+            {% if t.days_remaining > 5 %}
+              <span style="color: #34d399; font-weight: 700; font-size: 13px;">Bado siku {{ t.days_remaining }}</span>
+            {% elif t.days_remaining > 1 %}
+              <span style="color: #fbbf24; font-weight: 700; font-size: 13px;">Zimebaki siku {{ t.days_remaining }}!</span>
+            {% elif t.days_remaining == 1 %}
+              <span style="color: #ea580c; font-weight: 800; font-size: 13px;">Inaisha Kesho!</span>
+            {% elif t.days_remaining == 0 %}
+              <span style="color: #ef4444; font-weight: 800; font-size: 13px;">Inaisha Leo!</span>
+            {% else %}
+              <span style="color: #f87171; font-weight: 700; font-size: 13px;">Imeisha siku {{ t.days_remaining|stringformat:"+d"|slice:"1:" }} zilizopita</span>
+            {% endif %}
+          </td>
+
+          <!-- Monthly Rate -->
+          <td>
+            <span style="font-family: monospace; font-size: 13px; font-weight: 600;">TZS {{ t.monthly_rate_tzs|intcomma }}</span>
+          </td>
+
+          <!-- Action Buttons -->
+          <td style="text-align: right;">
+            <div style="display: inline-flex; gap: 6px;">
+              <!-- View Detail -->
+              <a href="{% url 'tenant_detail' t.id %}" class="btn btn-secondary btn-sm" title="Fungua Faili">
+                <i class="bi bi-eye"></i>
+              </a>
+
+              <!-- Copy Pay Link -->
+              <button onclick="copyPayLink('{{ t.slug }}')" class="btn btn-secondary btn-sm" title="Nakili Link ya Malipo kwa Mteja">
+                <i class="bi bi-link-45deg"></i>
+              </button>
+
+              <!-- Send Reminder Email -->
+              <a href="{% url 'send_reminder' t.id %}" class="btn btn-secondary btn-sm" title="Tuma Kikumbusho cha Email Papo Hapo" onclick="return confirm('Unataka kumtumia {{ t.name }} barua pepe ya kikumbusho cha malipo sasa?');">
+                <i class="bi bi-envelope-arrow-up" style="color: #60a5fa;"></i>
+              </a>
+
+              <!-- Quick Manual Extend Modal Trigger -->
+              <button onclick="openExtendModal('{{ t.id }}', '{{ t.name|escapejs }}', '{{ t.monthly_rate_tzs }}')" class="btn btn-primary btn-sm" title="Ongeza Siku Mkononi">
+                <i class="bi bi-calendar-plus"></i> +Siku
+              </button>
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 48px; color: var(--text-dim);">
+            <i class="bi bi-inbox" style="font-size: 36px; display: block; margin-bottom: 12px;"></i>
+            Hakuna mteja aliyepatikana kwa kigezo hiki. 
+            <br>
+            <a href="{% url 'add_tenant' %}" class="btn btn-primary btn-sm" style="margin-top: 14px;">
+              <i class="bi bi-plus-lg"></i> Bonyeza hapa kusajili mteja wa kwanza
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Recent Transactions -->
+<div class="table-container">
+  <div style="padding: 18px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+    <h3 style="font-size: 16px; font-weight: 700; color: white;">
+      <i class="bi bi-clock-history" style="color: #10b981; margin-right: 6px;"></i> Miamala ya Hivi Karibuni (HarakaPay Mobile Money)
+    </h3>
+    <a href="{% url 'transactions' %}" style="font-size: 13px; color: #3b82f6; text-decoration: none; font-weight: 600;">Ona Miamala Yote &rarr;</a>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Namba ya Muamala (Order ID)</th>
+        <th>Mteja / Taasisi</th>
+        <th>Kiasi (TZS)</th>
+        <th>Namba ya Simu</th>
+        <th>Siku Zilizoongezwa</th>
+        <th>Hali</th>
+        <th>Muda</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tx in recent_transactions %}
+        <tr>
+          <td><code style="color: #60a5fa; font-weight: 700;">{{ tx.order_id }}</code></td>
+          <td>{{ tx.tenant.name }} ({{ tx.tenant.app.name }})</td>
+          <td style="font-weight: 700; color: #34d399;">TZS {{ tx.amount_tzs|intcomma }}</td>
+          <td>{{ tx.phone_number }}</td>
+          <td>+{{ tx.days_added }} siku</td>
+          <td>
+            {% if tx.status == 'COMPLETED' %}
+              <span class="badge badge-active"><i class="bi bi-check-all"></i> IMEKAMILIKA</span>
+            {% elif tx.status == 'PENDING' %}
+              <span class="badge badge-expiring"><i class="bi bi-clock"></i> INASUBIRI PIN</span>
+            {% else %}
+              <span class="badge badge-expired"><i class="bi bi-x-circle"></i> IMEFELI</span>
+            {% endif %}
+          </td>
+          <td style="font-size: 12px; color: var(--text-dim);">{{ tx.created_at|date:"d/m/Y H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 28px; color: var(--text-dim);">
+            Bado hakuna miamala iliyofanyika. Mteja akilipa kwa HarakaPay itaonekana hapa papo hapo.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal: Quick Add Days Manual Extension -->
+<div id="extendModal" class="modal-backdrop">
+  <div class="modal-card">
+    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 16px; font-weight: 700; color: white;" id="modalTenantTitle">Ongeza Siku za Leseni</h3>
+      <button onclick="closeExtendModal()" style="background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer;">&times;</button>
+    </div>
+    
+    <form id="extendForm" method="POST" action="">
+      {% csrf_token %}
+      <div style="padding: 24px;">
+        <div class="form-group">
+          <label class="form-label">Chagua Idadi ya Siku za Kuongeza</label>
+          <select name="days" id="modalDaysSelect" class="form-control" onchange="calcAmount()">
+            <option value="30">Siku 30 (Mwezi 1)</option>
+            <option value="60">Siku 60 (Miezi 2)</option>
+            <option value="90">Siku 90 (Miezi 3 - Robo Mwaka)</option>
+            <option value="180">Siku 180 (Miezi 6 - Nusu Mwaka)</option>
+            <option value="365">Siku 365 (Mwaka 1)</option>
+            <option value="7">Siku 7 (Muda wa Dharura)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Kiasi Kilichopokelewa (TZS)</label>
+          <input type="number" name="amount_tzs" id="modalAmountInput" class="form-control" value="50000">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Maelezo (Notes)</label>
+          <input type="text" name="notes" class="form-control" placeholder="Mf. Kalipa benki NMB / Cash mkononi">
+        </div>
+
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" onclick="closeExtendModal()" class="btn btn-secondary">Ghairi</button>
+          <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Thibitisha & Ongeza Siku</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let currentMonthlyRate = 50000;
+
+  function copyPayLink(slug) {
+    const fullUrl = window.location.origin + '/pay/' + slug + '/';
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      alert('Link ya Malipo ya mteja imenakiliwa kwenye clipboard:\n' + fullUrl);
+    }).catch(err => {
+      prompt('Nakili link hii ya malipo:', fullUrl);
+    });
+  }
+
+  function openExtendModal(tenantId, tenantName, monthlyRate) {
+    currentMonthlyRate = parseInt(monthlyRate) || 50000;
+    document.getElementById('modalTenantTitle').innerText = 'Ongeza Siku za Leseni: ' + tenantName;
+    document.getElementById('extendForm').action = '/tenants/' + tenantId + '/extend/';
+    calcAmount();
+    document.getElementById('extendModal').style.display = 'flex';
+  }
+
+  function closeExtendModal() {
+    document.getElementById('extendModal').style.display = 'none';
+  }
+
+  function calcAmount() {
+    const days = parseInt(document.getElementById('modalDaysSelect').value) || 30;
+    const months = days / 30;
+    const total = Math.round(currentMonthlyRate * months);
+    document.getElementById('modalAmountInput').value = total;
+  }
+</script>
+{% endblock %}

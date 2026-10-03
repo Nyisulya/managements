@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header_title %}
+  <i class="bi bi-cash-stack" style="color: #10b981;"></i> Miamala ya Malipo
+{% endblock %}
+
+{% block content %}
+<div class="stat-card" style="margin-bottom: 24px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+  <div>
+    <div style="font-size: 13px; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Jumla ya Malipo Yaliyokamilika</div>
+    <div style="font-size: 28px; font-weight: 800; color: #34d399; margin-top: 4px;">TZS {{ total_amount|intcomma }}</div>
+  </div>
+
+  <div style="display: flex; gap: 8px;">
+    <a href="{% url 'transactions' %}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-secondary{% endif %}">Zote</a>
+    <a href="{% url 'transactions' %}?status=COMPLETED" class="btn btn-sm {% if status_filter == 'COMPLETED' %}btn-primary{% else %}btn-secondary{% endif %}">Zilizokamilika</a>
+    <a href="{% url 'transactions' %}?status=PENDING" class="btn btn-sm {% if status_filter == 'PENDING' %}btn-primary{% else %}btn-secondary{% endif %}">Zinazosubiri</a>
+    <a href="{% url 'transactions' %}?status=FAILED" class="btn btn-sm {% if status_filter == 'FAILED' %}btn-primary{% else %}btn-secondary{% endif %}">Zilizofeli</a>
+  </div>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Namba ya Muamala</th>
+        <th>Mteja / Taasisi</th>
+        <th>Mfumo</th>
+        <th>Kiasi (TZS)</th>
+        <th>Namba ya Simu</th>
+        <th>Siku Zilizoongezwa</th>
+        <th>Hali ya Malipo</th>
+        <th>Njia</th>
+        <th>Tarehe na Saa</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tx in transactions %}
+        <tr>
+          <td><code style="color: #60a5fa; font-weight: 700;">{{ tx.order_id }}</code></td>
+          <td>
+            <a href="{% url 'tenant_detail' tx.tenant.id %}" style="color: white; font-weight: 600; text-decoration: none;">
+              {{ tx.tenant.name }}
+            </a>
+          </td>
+          <td><span style="font-size: 12px; color: #94a3b8;">{{ tx.tenant.app.name }}</span></td>
+          <td style="font-weight: 800; color: #34d399;">TZS {{ tx.amount_tzs|intcomma }}</td>
+          <td>{{ tx.phone_number }}</td>
+          <td>+{{ tx.days_added }} siku</td>
+          <td>
+            {% if tx.status == 'COMPLETED' %}
+              <span class="badge badge-active"><i class="bi bi-check-all"></i> IMEKAMILIKA</span>
+            {% elif tx.status == 'PENDING' %}
+              <span class="badge badge-expiring"><i class="bi bi-clock"></i> INASUBIRI</span>
+            {% else %}
+              <span class="badge badge-expired"><i class="bi bi-x-circle"></i> IMEFELI</span>
+            {% endif %}
+          </td>
+          <td><span style="font-size: 12px; color: var(--text-dim);">{{ tx.gateway }}</span></td>
+          <td style="font-size: 12px; color: var(--text-dim);">{{ tx.created_at|date:"d/m/Y H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="9" style="text-align: center; padding: 48px; color: var(--text-dim);">
+            Hakuna kumbukumbu ya miamala iliyopatikana.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

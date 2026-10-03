@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header_title %}
+  <i class="bi bi-grid-fill" style="color: #3b82f6;"></i> Mifumo Yangu (Systems Catalog)
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+  <div>
+    <h2 style="font-size: 18px; font-weight: 700; color: white;">Aina za Mifumo Unayosimamia</h2>
+    <p style="font-size: 13px; color: var(--text-muted);">Sajili mifumo tofauti (mf. Makanisa, Maofisi, Shule, Maduka) na vifurushi vyao vya bei.</p>
+  </div>
+  <button onclick="document.getElementById('newAppModal').style.display='flex'" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> Sajili Mfumo Mpya
+  </button>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 24px; margin-bottom: 30px;">
+  {% for app in apps %}
+    <div class="stat-card" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+            <i class="bi {{ app.icon|default:'bi-laptop' }}"></i>
+          </div>
+          <div>
+            <h3 style="font-size: 17px; font-weight: 700; color: white;">{{ app.name }}</h3>
+            <span style="font-family: monospace; font-size: 11px; color: var(--text-dim);">code: {{ app.code }}</span>
+          </div>
+        </div>
+        <span class="badge badge-active">{{ app.tenants.count }} Wateja</span>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        {{ app.description|default:"Hakuna maelezo ya ziada yaliyowekwa." }}
+      </p>
+
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Vifurushi vya Bei</span>
+          <button onclick="openPlanModal('{{ app.id }}', '{{ app.name|escapejs }}')" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px;">
+            + Kifurushi
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          {% for plan in app.plans.all %}
+            <div style="background: var(--bg-dark); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-size: 13px; font-weight: 600; color: white;">{{ plan.name }}</span>
+                <span style="font-size: 11px; color: var(--text-dim); margin-left: 6px;">({{ plan.duration_days }} siku)</span>
+              </div>
+              <span style="font-weight: 700; color: #34d399; font-size: 13px;">TZS {{ plan.price_tzs|intcomma }}</span>
+            </div>
+          {% empty %}
+            <div style="font-size: 12px; color: var(--text-dim); font-style: italic; padding: 8px 0;">
+              Hakuna vifurushi maalum. Mfumo unatumia bei ya mwezi ya mteja (Monthly Rate).
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 48px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px;">
+      <i class="bi bi-grid" style="font-size: 40px; color: var(--text-dim); display: block; margin-bottom: 12px;"></i>
+      <h3 style="font-size: 16px; color: white; margin-bottom: 8px;">Bado hujasajili mfumo wowote</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">Anza kwa kuongeza aina ya mfumo kama Kanisa, Hospitali, au Ofisi.</p>
+      <button onclick="document.getElementById('newAppModal').style.display='flex'" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Ongeza Mfumo wa Kwanza
+      </button>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Modal: New App -->
+<div id="newAppModal" class="modal-backdrop">
+  <div class="modal-card">
+    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 16px; font-weight: 700; color: white;">Sajili Aina Mpya ya Mfumo</h3>
+      <button onclick="document.getElementById('newAppModal').style.display='none'" style="background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer;">&times;</button>
+    </div>
+    <form method="POST">
+      {% csrf_token %}
+      <div style="padding: 24px;">
+        <div class="form-group">
+          <label class="form-label">Jina la Mfumo *</label>
+          <input type="text" name="name" class="form-control" placeholder="Mf. Mfumo wa Kanisa (Church ERP)" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Code / Slug *</label>
+          <input type="text" name="code" class="form-control" placeholder="church_erp" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Icon (Bootstrap Icon class)</label>
+          <select name="icon" class="form-control">
+            <option value="bi-building">bi-building (Kanisa / Jengo)</option>
+            <option value="bi-hospital">bi-hospital (Afya / Zahanati)</option>
+            <option value="bi-shop">bi-shop (Duka / POS / Ofisi)</option>
+            <option value="bi-book">bi-book (Shule / Chuo)</option>
+            <option value="bi-laptop" selected>bi-laptop (Mfumo wa Jumla)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Maelezo Mafupi</label>
+          <textarea name="description" rows="2" class="form-control"></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" onclick="document.getElementById('newAppModal').style.display='none'" class="btn btn-secondary">Ghairi</button>
+          <button type="submit" class="btn btn-primary">Hifadhi Mfumo</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: New Pricing Plan -->
+<div id="newPlanModal" class="modal-backdrop">
+  <div class="modal-card">
+    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 16px; font-weight: 700; color: white;" id="planModalTitle">Ongeza Kifurushi</h3>
+      <button onclick="document.getElementById('newPlanModal').style.display='none'" style="background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer;">&times;</button>
+    </div>
+    <form id="planForm" method="POST" action="">
+      {% csrf_token %}
+      <div style="padding: 24px;">
+        <div class="form-group">
+          <label class="form-label">Jina la Kifurushi *</label>
+          <input type="text" name="name" class="form-control" placeholder="Mf. Mwezi 1 (Standard) au Robo Mwaka" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="form-group">
+            <label class="form-label">Idadi ya Siku *</label>
+            <input type="number" name="duration_days" class="form-control" value="30" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bei (TZS) *</label>
+            <input type="number" name="price_tzs" class="form-control" value="50000" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Maelezo</label>
+          <input type="text" name="description" class="form-control" placeholder="Okoa 10% kwa kulipia miezi 3">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" onclick="document.getElementById('newPlanModal').style.display='none'" class="btn btn-secondary">Ghairi</button>
+          <button type="submit" class="btn btn-primary">Hifadhi Kifurushi</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function openPlanModal(appId, appName) {
+    document.getElementById('planModalTitle').innerText = 'Ongeza Kifurushi: ' + appName;
+    document.getElementById('planForm').action = '/apps/' + appId + '/plans/add/';
+    document.getElementById('newPlanModal').style.display = 'flex';
+  }
+</script>
+{% endblock %}

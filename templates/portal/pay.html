@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Malipo ya Huduma &bull; {{ tenant.name }} ({{ tenant.app.name }})</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <style>
+    :root {
+      --bg-page: #080d1a;
+      --card-bg: #0f172a;
+      --card-elevated: #152238;
+      --border-color: #1e2e4a;
+      --accent-green: #10b981;
+      --accent-blue: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 50% 10%, #172554, #080d1a 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 14px calc(80px + var(--safe-bottom));
+    }
+
+    .checkout-container {
+      max-width: 540px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Top Branding */
+    .brand-top {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .brand-name {
+      font-size: 24px;
+      font-weight: 900;
+      color: white;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 5px 12px;
+      border-radius: 30px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #60a5fa;
+    }
+
+    /* Main Card */
+    .main-card {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 26px 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    @media (min-width: 600px) {
+      body {
+        padding: 30px 20px 80px;
+      }
+      .main-card {
+        padding: 34px 30px;
+      }
+    }
+
+    /* Tenant Header */
+    .tenant-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 18px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .tenant-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .app-subtitle {
+      font-size: 13px;
+      color: #60a5fa;
+      font-weight: 600;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Expiry & Status banner */
+    .status-banner {
+      background: var(--card-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .status-active {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-expiring {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      animation: pulse-badge 2s infinite ease-in-out;
+    }
+
+    .status-expired {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    @keyframes pulse-badge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; transform: scale(1.02); }
+    }
+
+    /* Section Titles */
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Plan Selection Grid */
+    .plans-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .plan-option {
+      background: var(--card-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 14px;
+      padding: 13px 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      user-select: none;
+    }
+
+    .plan-option:active {
+      transform: scale(0.97);
+    }
+
+    .plan-option.selected {
+      border-color: var(--accent-blue);
+      background: linear-gradient(145deg, rgba(37, 99, 235, 0.15), rgba(15, 23, 42, 0.9));
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
+    }
+
+    .plan-tag {
+      position: absolute;
+      top: -8px;
+      right: 10px;
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #020617;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .plan-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 3px;
+    }
+
+    .plan-price {
+      font-size: 16px;
+      font-weight: 900;
+      color: #34d399;
+    }
+
+    .plan-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Phone Form */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+
+    .phone-input-wrap {
+      display: flex;
+      align-items: center;
+      background: #080d1a;
+      border: 1.5px solid var(--border-color);
+      border-radius: 14px;
+      padding: 4px 14px;
+      transition: all 0.2s ease;
+    }
+
+    .phone-input-wrap:focus-within {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .phone-prefix {
+      font-size: 15px;
+      font-weight: 800;
+      color: #94a3b8;
+      padding-right: 10px;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .phone-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 13px 10px;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      outline: none;
+      letter-spacing: 1px;
+      width: 100%;
+    }
+
+    /* Telecom Network Badges */
+    .networks-badge {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .net-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      padding: 6px 4px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    /* Summary Bar */
+    .summary-bar {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 18px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary-total {
+      font-size: 20px;
+      font-weight: 900;
+      color: #34d399;
+    }
+
+    /* Big Pay Button */
+    .btn-pay {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 17px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 22px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-pay:active {
+      transform: scale(0.98);
+    }
+
+    .btn-pay:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Overlay Screens */
+    .overlay-card {
+      display: none;
+      text-align: center;
+      padding: 16px 0;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .pulse-ring {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.18);
+      border: 3px solid var(--accent-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: #60a5fa;
+      margin: 0 auto 18px;
+      animation: pulse 1.6s infinite ease-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 22px rgba(59, 130, 246, 0); }
+      100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+
+    .success-icon {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.2);
+      border: 3px solid var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: #34d399;
+      margin: 0 auto 18px;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.4); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .footer-secure {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="checkout-container">
+    <!-- Header Branding -->
+    <div class="brand-top">
+      <div class="brand-name">
+        <i class="bi bi-shield-lock-fill" style="color: #3b82f6;"></i> Felician
+      </div>
+      <div class="brand-badge">
+        <i class="bi bi-patch-check-fill"></i> Usimamizi wa Mifumo &bull; Malipo ya Leseni
+      </div>
+    </div>
+
+    <div class="main-card">
+      <!-- 1. Normal Checkout Screen -->
+      <div id="checkoutScreen">
+        <!-- Institution Header -->
+        <div class="tenant-header">
+          <div>
+            <h1 class="tenant-title">{{ tenant.name }}</h1>
+            <div class="app-subtitle">
+              <i class="bi {{ tenant.app.icon|default:'bi-laptop' }}"></i> {{ tenant.app.name }}
+            </div>
+          </div>
+          <div>
+            {% if tenant.days_remaining > 5 %}
+              <span class="status-badge status-active">
+                <i class="bi bi-check-circle-fill"></i> HAI
+              </span>
+            {% elif tenant.days_remaining >= 0 %}
+              <span class="status-badge status-expiring">
+                <i class="bi bi-hourglass-split"></i> INAISHA
+              </span>
+            {% else %}
+              <span class="status-badge status-expired">
+                <i class="bi bi-lock-fill"></i> IMEFUNGWA
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Expiry status info -->
+        <div class="status-banner">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Tarehe ya Kuisha</div>
+            <div style="font-size: 14px; font-weight: 700; color: white; margin-top: 2px;">
+              {{ tenant.subscription_end|date:"d/m/Y" }}
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Siku Zilizobaki</div>
+            <div style="font-size: 14px; font-weight: 800; margin-top: 2px;">
+              {% if tenant.days_remaining > 5 %}
+                <span style="color: #34d399;">{{ tenant.days_remaining }} siku</span>
+              {% elif tenant.days_remaining > 0 %}
+                <span style="color: #fbbf24;">{{ tenant.days_remaining }} siku</span>
+              {% elif tenant.days_remaining == 0 %}
+                <span style="color: #ef4444;">Inaisha Leo!</span>
+              {% else %}
+                <span style="color: #f87171;">Imeisha (Siku {{ tenant.days_remaining|stringformat:"+d"|slice:"1:" }})</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Choose Duration Plan -->
+        <div class="section-title">
+          <i class="bi bi-calendar3"></i> 1. Chagua Muda Unao-lipia
+        </div>
+
+        <div class="plans-grid">
+          {% if plans %}
+            {% for p in plans %}
+              <div class="plan-option {% if forloop.first %}selected{% endif %}" onclick="selectPlan('{{ p.id }}', '{{ p.price_tzs }}', '{{ p.duration_days }}', '{{ p.name|escapejs }}', this)">
+                {% if p.is_popular %}<span class="plan-tag">POPULAR</span>{% endif %}
+                <div class="plan-name">{{ p.name }}</div>
+                <div class="plan-price">TZS {{ p.price_tzs }}</div>
+                <div class="plan-desc">+Siku {{ p.duration_days }} za huduma</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            {% for dp in default_plans %}
+              <div class="plan-option {% if forloop.first %}selected{% endif %}" onclick="selectPlan('{{ dp.id }}', '{{ dp.price_tzs }}', '{{ dp.duration_days }}', '{{ dp.name|escapejs }}', this)">
+                {% if dp.is_popular %}<span class="plan-tag">OKOA ZAIDI</span>{% endif %}
+                <div class="plan-name">{{ dp.name }}</div>
+                <div class="plan-price">TZS {{ dp.price_tzs }}</div>
+                <div class="plan-desc">+Siku {{ dp.duration_days }}</div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <!-- Phone Number Form -->
+        <div class="section-title">
+          <i class="bi bi-phone"></i> 2. Weka Namba ya Simu ya Kulipia
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Namba ya Simu ya Mobile Money</label>
+          <div class="phone-input-wrap">
+            <span class="phone-prefix">🇹🇿 +255</span>
+            <input type="tel" id="phoneNumber" class="phone-input" inputmode="tel" autocomplete="tel" placeholder="07xxxxxxxx au 06xxxxxxxx" value="{{ tenant.phone }}">
+          </div>
+
+          <div class="networks-badge">
+            <div class="net-pill" style="color: #ef4444;"><i class="bi bi-dot" style="font-size: 16px;"></i> M-Pesa</div>
+            <div class="net-pill" style="color: #38bdf8;"><i class="bi bi-dot" style="font-size: 16px;"></i> Tigo</div>
+            <div class="net-pill" style="color: #f59e0b;"><i class="bi bi-dot" style="font-size: 16px;"></i> Airtel</div>
+            <div class="net-pill" style="color: #ec4899;"><i class="bi bi-dot" style="font-size: 16px;"></i> HaloPesa</div>
+          </div>
+        </div>
+
+        <!-- Summary Bar -->
+        <div class="summary-bar">
+          <div>
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Jumla ya Kulipa</div>
+            <div id="summaryLabel" style="font-size: 13px; color: white; font-weight: 600;">Mwezi 1 (+30 siku)</div>
+          </div>
+          <div id="summaryTotal" class="summary-total">
+            TZS {% if plans %}{{ plans.0.price_tzs }}{% else %}{{ default_plans.0.price_tzs }}{% endif %}
+          </div>
+        </div>
+
+        <!-- Error Banner -->
+        <div id="errorBanner" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 12px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; text-align: center;"></div>
+
+        <!-- Big CTA Button -->
+        <button id="payBtn" onclick="initiatePayment()" class="btn-pay">
+          <i class="bi bi-phone-vibrate"></i> Lipia Sasa (USSD Push) &rarr;
+        </button>
+
+        <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 14px;">
+          <i class="bi bi-shield-check" style="color: #10b981;"></i> Utapokea ujumbe kwenye simu kukuomba uweke PIN.
+        </p>
+      </div>
+
+      <!-- 2. Waiting for USSD PIN Screen -->
+      <div id="waitingScreen" class="overlay-card">
+        <div class="pulse-ring">
+          <i class="bi bi-broadcast"></i>
+        </div>
+        <h2 style="font-size: 20px; font-weight: 800; color: white; margin-bottom: 8px;">Ombi Limetumwa Kwenye Simu Yako!</h2>
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.5; margin-bottom: 16px;">
+          Tafadhali angalia simu yako yenye namba <b id="waitingPhone" style="color: #60a5fa;"></b>.
+          <br>
+          Weka <b>PIN</b> yako kukamilisha malipo ya <b id="waitingAmount" style="color: #34d399;"></b>.
+        </p>
+
+        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 14px; padding: 14px; font-size: 13px; color: #94a3b8; margin-bottom: 22px;">
+          <i class="bi bi-arrow-repeat" style="animation: spin 2s linear infinite; display: inline-block;"></i>
+          Inathibitisha malipo kiotomatiki... Usifunge ukurasa huu.
+        </div>
+
+        <button onclick="cancelWaiting()" style="background: var(--card-elevated); border: 1px solid var(--border-color); color: var(--text-muted); padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;">
+          Rudi Nyuma / Badili Namba
+        </button>
+      </div>
+
+      <!-- 3. Payment Success Screen -->
+      <div id="successScreen" class="overlay-card">
+        <div class="success-icon">
+          <i class="bi bi-check-lg"></i>
+        </div>
+        <h2 style="font-size: 22px; font-weight: 800; color: white; margin-bottom: 8px;">Malipo Yamekamilika! 🎉</h2>
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.5; margin-bottom: 20px;">
+          Hongera sana! Malipo yako yamepokelewa na leseni ya <b>{{ tenant.app.name }}</b> imeongezwa siku kwa ufanisi.
+        </p>
+
+        <div style="background: var(--card-elevated); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 16px; margin-bottom: 22px; text-align: left;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+            <span style="color: var(--text-muted);">Mteja:</span>
+            <span style="font-weight: 700; color: white;">{{ tenant.name }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+            <span style="color: var(--text-muted);">Tarehe Mpya ya Kuisha:</span>
+            <span id="successExpiryDate" style="font-weight: 800; color: #34d399;"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--text-muted);">Hali ya Mfumo:</span>
+            <span style="font-weight: 700; color: #34d399;">HAI &bull; ACTIVE</span>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 22px;">
+          Resiti rasmi imetumwa kwenye barua pepe ya <b>{{ tenant.email }}</b>. Mfumo wako unaendelea kufanya kazi moja kwa moja!
+        </p>
+
+        <button onclick="window.location.reload()" class="btn-pay" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+          <i class="bi bi-arrow-clockwise"></i> Funga & Angalia Hali Yako
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer Secure -->
+    <div class="footer-secure">
+      <span><i class="bi bi-shield-shaded" style="color: #10b981;"></i> Malipo Salama &bull; HarakaPay</span>
+      <span>&bull;</span>
+      <span>Felician &bull; Usimamizi wa Mifumo</span>
+      <span>&bull;</span>
+      <span>Msaada: info@nyisu.com</span>
+    </div>
+  </div>
+
+  <style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
+
+  <script>
+    let selectedPlanId = "{% if plans %}{{ plans.0.id }}{% else %}{{ default_plans.0.id }}{% endif %}";
+    let selectedPrice = "{% if plans %}{{ plans.0.price_tzs }}{% else %}{{ default_plans.0.price_tzs }}{% endif %}";
+    let selectedDays = "{% if plans %}{{ plans.0.duration_days }}{% else %}{{ default_plans.0.duration_days }}{% endif %}";
+    
+    let activeOrderId = null;
+    let pollInterval = null;
+
+    function selectPlan(planId, price, days, name, element) {
+      selectedPlanId = planId;
+      selectedPrice = price;
+      selectedDays = days;
+
+      document.querySelectorAll('.plan-option').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+
+      document.getElementById('summaryTotal').innerText = 'TZS ' + Number(price).toLocaleString();
+      document.getElementById('summaryLabel').innerText = name + ' (+' + days + ' siku)';
+    }
+
+    async function initiatePayment() {
+      const phoneInput = document.getElementById('phoneNumber');
+      const phone = phoneInput.value.trim();
+      const errorBanner = document.getElementById('errorBanner');
+      const payBtn = document.getElementById('payBtn');
+
+      errorBanner.style.display = 'none';
+
+      if (!phone || phone.length < 9) {
+        errorBanner.innerText = 'Tafadhali weka namba sahihi ya simu (mfano 0712345678).';
+        errorBanner.style.display = 'block';
+        return;
+      }
+
+      payBtn.disabled = true;
+      payBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Inatuma Ombi la USSD...';
+
+      try {
+        const response = await fetch('/api/payment/initiate/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            tenant_id: '{{ tenant.id }}',
+            phone: phone,
+            plan_id: selectedPlanId,
+            amount: selectedPrice,
+            days: selectedDays
+          })
+        });
+
+        let data;
+        const responseText = await response.text();
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          throw new Error('Hitilafu ya seva (Server Error). Tafadhali jaribu tena.');
+        }
+
+        if (response.ok && data.success && data.order_id) {
+          activeOrderId = data.order_id;
+          showWaitingScreen(data.phone, data.amount);
+          startStatusPolling(data.order_id);
+        } else {
+          errorBanner.innerText = data.error || 'Imeshindikana kutuma ombi la malipo.';
+          errorBanner.style.display = 'block';
+          payBtn.disabled = false;
+          payBtn.innerHTML = '<i class="bi bi-phone-vibrate"></i> Lipia Sasa (USSD Push) &rarr;';
+        }
+      } catch (err) {
+        errorBanner.innerText = err.message || 'Hitilafu ya mtandao. Tafadhali jaribu tena.';
+        errorBanner.style.display = 'block';
+        payBtn.disabled = false;
+        payBtn.innerHTML = '<i class="bi bi-phone-vibrate"></i> Lipia Sasa (USSD Push) &rarr;';
+      }
+    }
+
+    function showWaitingScreen(phone, amount) {
+      document.getElementById('checkoutScreen').style.display = 'none';
+      document.getElementById('waitingPhone').innerText = phone;
+      document.getElementById('waitingAmount').innerText = 'TZS ' + Number(amount).toLocaleString();
+      document.getElementById('waitingScreen').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelWaiting() {
+      if (pollInterval) clearInterval(pollInterval);
+      document.getElementById('waitingScreen').style.display = 'none';
+      document.getElementById('checkoutScreen').style.display = 'block';
+      const payBtn = document.getElementById('payBtn');
+      payBtn.disabled = false;
+      payBtn.innerHTML = '<i class="bi bi-phone-vibrate"></i> Lipia Sasa (USSD Push) &rarr;';
+    }
+
+    function startStatusPolling(orderId) {
+      if (pollInterval) clearInterval(pollInterval);
+
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/payment/status/' + orderId + '/');
+          const data = await res.json();
+
+          if (data.completed) {
+            clearInterval(pollInterval);
+            showSuccessScreen(data.new_expiry);
+          } else if (data.status === 'failed') {
+            clearInterval(pollInterval);
+            alert(data.error || 'Malipo yameshindikana kwenye simu yako. Tafadhali jaribu tena.');
+            cancelWaiting();
+          }
+        } catch (e) {
+          console.log('Polling status...', e);
+        }
+      }, 3000);
+    }
+
+    function showSuccessScreen(newExpiry) {
+      document.getElementById('waitingScreen').style.display = 'none';
+      document.getElementById('successExpiryDate').innerText = newExpiry || 'Imesasishwa';
+      document.getElementById('successScreen').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
